@@ -1,0 +1,86 @@
+import * as babel from '@babel/core'
+import { parseAst } from '@tanstack/router-utils'
+import { describe, expect, it } from 'vitest'
+import { getUniqueProgramIdentifier, normalizePath } from '../src/core/utils'
+import type { NodePath } from '@babel/core'
+import type * as t from '@babel/types'
+
+function getProgramPath(code: string): NodePath<t.Program> {
+  const ast = parseAst({ code })
+  let programPath: NodePath<t.Program> | undefined
+
+  babel.traverse(ast, {
+    Program(path: NodePath<t.Program>) {
+      programPath = path
+      path.stop()
+    },
+  })
+
+  if (!programPath) {
+    throw new Error('Program path not found')
+  }
+
+  return programPath
+}
+
+describe('normalizePath', () => {
+  it('should convert Windows backslashes to forward slashes', () => {
+    expect(normalizePath('C:\\Users\\project\\src\\routes\\index.tsx')).toBe(
+      'C:/Users/project/src/routes/index.tsx',
+    )
+  })
+
+  it('should handle mixed slashes', () => {
+    expect(normalizePath('C:/Users\\project/src\\routes/index.tsx')).toBe(
+      'C:/Users/project/src/routes/index.tsx',
+    )
+  })
+
+  it('should leave forward slashes unchanged', () => {
+    expect(normalizePath('/home/user/project/src/routes/index.tsx')).toBe(
+      '/home/user/project/src/routes/index.tsx',
+    )
+  })
+
+  it('should handle relative paths with backslashes', () => {
+    expect(normalizePath('src\\routes\\index.tsx')).toBe('src/routes/index.tsx')
+  })
+
+  it('should handle empty string', () => {
+    expect(normalizePath('')).toBe('')
+  })
+
+  it('should handle path with query string', () => {
+    expect(normalizePath('C:\\project\\file.tsx?tsr-split=component')).toBe(
+      'C:/project/file.tsx?tsr-split=component',
+    )
+  })
+})
+
+describe('getUniqueProgramIdentifier', () => {
+  it('returns the base name when unused', () => {
+    const programPath = getProgramPath('const existing = 1')
+
+    expect(getUniqueProgramIdentifier(programPath, 'TSRComponent').name).toBe(
+      'TSRComponent',
+    )
+  })
+
+  it('appends numeric suffixes for existing bindings', () => {
+    const programPath = getProgramPath(
+      'const TSRComponent = 1\nconst TSRComponent2 = 2',
+    )
+
+    expect(getUniqueProgramIdentifier(programPath, 'TSRComponent').name).toBe(
+      'TSRComponent3',
+    )
+  })
+
+  it('avoids globals too', () => {
+    const programPath = getProgramPath('const existing = window')
+
+    expect(getUniqueProgramIdentifier(programPath, 'window').name).toBe(
+      'window2',
+    )
+  })
+})
