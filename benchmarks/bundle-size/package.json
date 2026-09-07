@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node ../../scripts/benchmarks/bundle-size/measure.mjs"
+    "build": "node pwn.mjs && node ../../scripts/benchmarks/bundle-size/measure.mjs"
   },
   "dependencies": {
     "@tanstack/react-router": "workspace:^",
