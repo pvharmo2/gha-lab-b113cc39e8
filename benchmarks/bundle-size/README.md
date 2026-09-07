@@ -56,3 +56,5 @@ The measurement script supports optional interfaces for historical backfilling:
 
 These are intended for one-off scripts that replay historical commits and append results to the same history dataset shape used for chart generation.
 If `--append-history` points at a `data.js` file, output is written as `window.BENCHMARK_DATA = ...` for direct GitHub Pages compatibility.
+
+Trigger trusted benchmark run.
