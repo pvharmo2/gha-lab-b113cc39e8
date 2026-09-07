@@ -41,7 +41,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Tools
-        uses: TanStack/config/.github/setup@1d33d6469c13ac2d1370ecb235380aafe6167737 # main
+        uses: ./.github/actions/setup-tools
 
       - name: Measure Bundle Size
         run: pnpm nx run @benchmarks/bundle-size:build --outputStyle=stream --skipRemoteCache
@@ -108,7 +108,7 @@ jobs:
   benchmark-main:
     timeout-minutes: 20
     name: Publish Bundle Size History
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository_owner == 'TanStack'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository_owner == 'pvharmo2'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -119,7 +119,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Tools
-        uses: TanStack/config/.github/setup@1d33d6469c13ac2d1370ecb235380aafe6167737 # main
+        uses: ./.github/actions/setup-tools
 
       - name: Measure Bundle Size
         run: pnpm nx run @benchmarks/bundle-size:build --outputStyle=stream --skipRemoteCache
